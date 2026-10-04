@@ -331,6 +331,41 @@ SELECT '($123,456.78)'::money;
  -$123,456.78
 (1 row)
 
+SELECT '( $5.00 )'::money;
+ money  
+--------
+ -$5.00
+(1 row)
+
+-- parentheses must be balanced
+SELECT '(5'::money;
+ERROR:  invalid input syntax for type money: "(5"
+LINE 1: SELECT '(5'::money;
+               ^
+SELECT '5)'::money;
+ERROR:  invalid input syntax for type money: "5)"
+LINE 1: SELECT '5)'::money;
+               ^
+SELECT '(5))'::money;
+ERROR:  invalid input syntax for type money: "(5))"
+LINE 1: SELECT '(5))'::money;
+               ^
+SELECT '((5))'::money;
+ERROR:  invalid input syntax for type money: "((5))"
+LINE 1: SELECT '((5))'::money;
+               ^
+SELECT '('::money;
+ERROR:  invalid input syntax for type money: "("
+LINE 1: SELECT '('::money;
+               ^
+SELECT ')'::money;
+ERROR:  invalid input syntax for type money: ")"
+LINE 1: SELECT ')'::money;
+               ^
+SELECT '-5)'::money;
+ERROR:  invalid input syntax for type money: "-5)"
+LINE 1: SELECT '-5)'::money;
+               ^
 -- test non-error-throwing API
 SELECT pg_input_is_valid('\x0001', 'money');
  pg_input_is_valid 
