@@ -1658,8 +1658,16 @@ get_object_address_opcf(ObjectType objtype, List *object, bool missing_ok)
 	Oid			amoid;
 	ObjectAddress address;
 
-	/* XXX no missing_ok support here */
-	amoid = get_index_am_oid(strVal(linitial(object)), false);
+	amoid = get_index_am_oid(strVal(linitial(object)), missing_ok);
+	if (!OidIsValid(amoid))
+	{
+		/* access method is missing, so the opclass/opfamily is too */
+		ObjectAddressSet(address,
+						 (objtype == OBJECT_OPCLASS) ?
+						 OperatorClassRelationId : OperatorFamilyRelationId,
+						 InvalidOid);
+		return address;
+	}
 	object = list_copy_tail(object, 1);
 
 	switch (objtype)
