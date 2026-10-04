@@ -408,6 +408,20 @@ SELECT jsonb_object_agg_unique(i, null) OVER (ORDER BY i)
 SELECT jsonb_object_agg_unique_strict(i, null) OVER (ORDER BY i)
   FROM generate_series(1, 10) g(i);
 
+-- strict variants drop SQL NULL values, but keep JSON null values
+SELECT jsonb_object_agg_strict(k, v),
+       jsonb_object_agg_unique_strict(k, v)
+  FROM (VALUES ('a', NULL::jsonb), ('b', 'null'::jsonb), ('c', '1'::jsonb)) t(k, v);
+SELECT jsonb_object_agg_unique_strict(k, v) OVER (ORDER BY k)
+  FROM (VALUES ('a', NULL::jsonb), ('b', 'null'::jsonb), ('c', '1'::jsonb)) t(k, v);
+SELECT jsonb_object_agg_unique_strict(k, v)
+  FROM (VALUES ('a', NULL::jsonb), ('a', 'null'::jsonb)) t(k, v);
+SELECT jsonb_object_agg_unique_strict(k, v)
+  FROM (VALUES ('a', 'null'::jsonb), ('a', NULL::jsonb)) t(k, v);
+SELECT JSON_OBJECT('a': 'null'::jsonb, 'b': NULL::jsonb ABSENT ON NULL RETURNING jsonb);
+SELECT JSON_OBJECT('a': 'null'::jsonb, 'b': NULL::jsonb ABSENT ON NULL
+                   WITH UNIQUE KEYS RETURNING jsonb);
+
 CREATE TEMP TABLE foo (serial_num int, name text, type text);
 INSERT INTO foo VALUES (847001,'t15','GE1043');
 INSERT INTO foo VALUES (847002,'t16','GE1043');

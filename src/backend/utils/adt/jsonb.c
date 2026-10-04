@@ -1165,6 +1165,7 @@ jsonb_build_object_worker(int nargs, const Datum *args, const bool *nulls, const
 			continue;
 
 		add_jsonb(args[i], false, &result, types[i], true);
+		result.parseState->next_is_sqlnull = skip;
 
 		/* process value */
 		add_jsonb(args[i + 1], nulls[i + 1], &result, types[i + 1], false);
@@ -1660,6 +1661,7 @@ jsonb_object_agg_transfn_worker(FunctionCallInfo fcinfo,
 
 	val = PG_ARGISNULL(2) ? (Datum) 0 : PG_GETARG_DATUM(2);
 
+	result->parseState->next_is_sqlnull = skip;
 	datum_to_jsonb_internal(val, PG_ARGISNULL(2), result, state->val_category,
 							state->val_output_func, false);
 

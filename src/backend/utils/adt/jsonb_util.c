@@ -770,6 +770,8 @@ pushState(JsonbInState *pstate)
 											 sizeof(JsonbParseState));
 
 	ns->next = pstate->parseState;
+	ns->next_is_sqlnull = false;
+
 	/* This module never changes these fields, but callers can: */
 	ns->unique_keys = false;
 	ns->skip_nulls = false;
@@ -806,6 +808,7 @@ appendKey(JsonbInState *pstate, JsonbValue *string, bool needCopy)
 	pair = &object->val.object.pairs[object->val.object.nPairs];
 	pair->key = *string;
 	pair->order = object->val.object.nPairs;
+	pair->sqlnull = false;
 
 	if (needCopy)
 		copyScalarSubstructure(&pair->key, pstate->outcontext);
@@ -817,13 +820,16 @@ appendKey(JsonbInState *pstate, JsonbValue *string, bool needCopy)
 static void
 appendValue(JsonbInState *pstate, JsonbValue *scalarVal, bool needCopy)
 {
-	JsonbValue *object = &pstate->parseState->contVal;
+	JsonbParseState *ppstate = pstate->parseState;
+	JsonbValue *object = &ppstate->contVal;
 	JsonbPair  *pair;
 
 	Assert(object->type == jbvObject);
 
 	pair = &object->val.object.pairs[object->val.object.nPairs];
 	pair->value = *scalarVal;
+	pair->sqlnull = ppstate->next_is_sqlnull;
+	ppstate->next_is_sqlnull = false;
 	object->val.object.nPairs++;
 
 	if (needCopy)
@@ -2097,8 +2103,8 @@ uniqueifyJsonbObject(JsonbValue *object, bool unique_keys, bool skip_nulls)
 				lengthCompareJsonbStringValue(&pairs[nNewPairs - 1].key,
 											  &ptr->key) == 0)
 				continue;
-			/* Skip null values, if told to */
-			if (skip_nulls && ptr->value.type == jbvNull)
+			/* Skip SQL NULL values (but not JSON nulls), if told to */
+			if (skip_nulls && ptr->sqlnull)
 				continue;
 			/* Emit this pair, but avoid no-op copy */
 			if (i > nNewPairs)
