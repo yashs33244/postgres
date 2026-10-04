@@ -219,6 +219,7 @@ DROP OPERATOR CLASS IF EXISTS test_operator_class USING btree;
 
 DROP OPERATOR CLASS test_operator_class USING no_such_am;
 DROP OPERATOR CLASS IF EXISTS test_operator_class USING no_such_am;
+DROP OPERATOR CLASS IF EXISTS no_such_schema.test_operator_class USING no_such_am;
 
 -- operator family
 DROP OPERATOR FAMILY test_operator_family USING btree;
@@ -226,6 +227,7 @@ DROP OPERATOR FAMILY IF EXISTS test_operator_family USING btree;
 
 DROP OPERATOR FAMILY test_operator_family USING no_such_am;
 DROP OPERATOR FAMILY IF EXISTS test_operator_family USING no_such_am;
+DROP OPERATOR FAMILY IF EXISTS no_such_schema.test_operator_family USING no_such_am;
 
 -- access method
 DROP ACCESS METHOD no_such_am;

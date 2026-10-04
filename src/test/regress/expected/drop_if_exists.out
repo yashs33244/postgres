@@ -217,7 +217,9 @@ NOTICE:  operator class "test_operator_class" does not exist for access method "
 DROP OPERATOR CLASS test_operator_class USING no_such_am;
 ERROR:  access method "no_such_am" does not exist
 DROP OPERATOR CLASS IF EXISTS test_operator_class USING no_such_am;
-ERROR:  access method "no_such_am" does not exist
+NOTICE:  operator class "test_operator_class" does not exist for access method "no_such_am", skipping
+DROP OPERATOR CLASS IF EXISTS no_such_schema.test_operator_class USING no_such_am;
+NOTICE:  schema "no_such_schema" does not exist, skipping
 -- operator family
 DROP OPERATOR FAMILY test_operator_family USING btree;
 ERROR:  operator family "test_operator_family" does not exist for access method "btree"
@@ -226,7 +228,9 @@ NOTICE:  operator family "test_operator_family" does not exist for access method
 DROP OPERATOR FAMILY test_operator_family USING no_such_am;
 ERROR:  access method "no_such_am" does not exist
 DROP OPERATOR FAMILY IF EXISTS test_operator_family USING no_such_am;
-ERROR:  access method "no_such_am" does not exist
+NOTICE:  operator family "test_operator_family" does not exist for access method "no_such_am", skipping
+DROP OPERATOR FAMILY IF EXISTS no_such_schema.test_operator_family USING no_such_am;
+NOTICE:  schema "no_such_schema" does not exist, skipping
 -- access method
 DROP ACCESS METHOD no_such_am;
 ERROR:  access method "no_such_am" does not exist
