@@ -199,6 +199,7 @@ cash_in(PG_FUNCTION_ARGS)
 	Cash		dec = 0;
 	Cash		sgn = 1;
 	bool		seen_dot = false;
+	bool		paren_open = false;
 	const char *s = str;
 	int			fpoint;
 	char		dsymbol;
@@ -254,17 +255,20 @@ cash_in(PG_FUNCTION_ARGS)
 	printf("cashin- string is '%s'\n", s);
 #endif
 
-	/* a leading minus or paren signifies a negative number */
-	/* again, better heuristics needed */
-	/* XXX - doesn't properly check for balanced parens - djmc */
+	/*
+	 * a leading minus or paren signifies a negative number; a leading paren
+	 * must be matched by a single right paren after the amount
+	 */
 	if (strncmp(s, nsymbol, strlen(nsymbol)) == 0)
 	{
 		sgn = -1;
+		paren_open = (*s == '(');	/* nsymbol can itself be a left paren */
 		s += strlen(nsymbol);
 	}
 	else if (*s == '(')
 	{
 		sgn = -1;
+		paren_open = true;
 		s++;
 	}
 	else if (strncmp(s, psymbol, strlen(psymbol)) == 0)
@@ -349,16 +353,21 @@ cash_in(PG_FUNCTION_ARGS)
 	}
 
 	/*
-	 * should only be trailing digits followed by whitespace, right paren,
-	 * trailing sign, and/or trailing currency symbol
+	 * should only be trailing digits followed by whitespace, right paren (if
+	 * a left paren was seen), trailing sign, and/or trailing currency symbol
 	 */
 	while (isdigit((unsigned char) *s))
 		s++;
 
 	while (*s)
 	{
-		if (isspace((unsigned char) *s) || *s == ')')
+		if (isspace((unsigned char) *s))
 			s++;
+		else if (*s == ')' && paren_open)
+		{
+			paren_open = false;
+			s++;
+		}
 		else if (strncmp(s, nsymbol, strlen(nsymbol)) == 0)
 		{
 			sgn = -1;
@@ -374,6 +383,12 @@ cash_in(PG_FUNCTION_ARGS)
 					 errmsg("invalid input syntax for type %s: \"%s\"",
 							"money", str)));
 	}
+
+	if (paren_open)
+		ereturn(escontext, (Datum) 0,
+				(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
+				 errmsg("invalid input syntax for type %s: \"%s\"",
+						"money", str)));
 
 	/*
 	 * If the value is supposed to be positive, flip the sign, but check for

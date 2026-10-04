@@ -87,6 +87,16 @@ SELECT '-9223372036854775808'::money;
 -- special characters
 SELECT '(1)'::money;
 SELECT '($123,456.78)'::money;
+SELECT '( $5.00 )'::money;
+
+-- parentheses must be balanced
+SELECT '(5'::money;
+SELECT '5)'::money;
+SELECT '(5))'::money;
+SELECT '((5))'::money;
+SELECT '('::money;
+SELECT ')'::money;
+SELECT '-5)'::money;
 
 -- test non-error-throwing API
 SELECT pg_input_is_valid('\x0001', 'money');
