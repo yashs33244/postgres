@@ -315,6 +315,7 @@ struct JsonbPair
 	JsonbValue	key;			/* Must be a jbvString */
 	JsonbValue	value;			/* May be of any type */
 	uint32		order;			/* Pair's index in original sequence */
+	bool		sqlnull;		/* Value came from SQL NULL, not JSON null */
 };
 
 /*
@@ -350,6 +351,7 @@ struct JsonbParseState
 	JsonbParseState *next;		/* Link to next outer level, if any */
 	bool		unique_keys;	/* Check object key uniqueness */
 	bool		skip_nulls;		/* Skip null object fields */
+	bool		next_is_sqlnull;	/* Next value pushed is a SQL NULL */
 };
 
 /*
